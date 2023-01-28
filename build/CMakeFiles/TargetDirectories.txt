@@ -1,0 +1,9 @@
+/home/jaithepaneeer/CG/A1/build/CMakeFiles/app.dir
+/home/jaithepaneeer/CG/A1/build/CMakeFiles/glad.dir
+/home/jaithepaneeer/CG/A1/build/CMakeFiles/edit_cache.dir
+/home/jaithepaneeer/CG/A1/build/CMakeFiles/rebuild_cache.dir
+/home/jaithepaneeer/CG/A1/build/libraries/glfw/CMakeFiles/edit_cache.dir
+/home/jaithepaneeer/CG/A1/build/libraries/glfw/CMakeFiles/rebuild_cache.dir
+/home/jaithepaneeer/CG/A1/build/libraries/glfw/src/CMakeFiles/glfw.dir
+/home/jaithepaneeer/CG/A1/build/libraries/glfw/src/CMakeFiles/edit_cache.dir
+/home/jaithepaneeer/CG/A1/build/libraries/glfw/src/CMakeFiles/rebuild_cache.dir
