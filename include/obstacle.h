@@ -7,7 +7,7 @@
 
 #include <deque>
 
-float obsLength = 0.5f;
+float obsLength = 125;
 unsigned obsCount = 100;
 unsigned int spawnCounter = 0;
 unsigned int Level = 1;
@@ -21,11 +21,11 @@ class obstacle
 
         obstacle()
         {
-            this->obsPos = glm::vec3(2.0f, 0.0f,  0.0f);
+            this->obsPos = glm::vec3(750.0f, 0.0f,  0.0f);
             this->obsRotate = rand() % 180;
-            this->obsPos.y = (float)(rand() % 5) / (float)5 - 0.4;
+            this->obsPos.y = ((float)(rand() % 5) / (float)5 - 0.4) * 300;
             // this->obsPos.y = -0.6;
-            this->obsSpeed = -1;
+            this->obsSpeed = -200;
             this->obsAngSpeed = 0;
         }
 
