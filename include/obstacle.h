@@ -34,10 +34,10 @@ class obstacle
             glm::mat4 obsPR = glm::mat4(1.0f);
             obsPR = glm::translate(obsPR, this->obsPos);
             obsPR = glm::rotate(obsPR, glm::radians(this->obsRotate), glm::vec3(0.0f, 0.0f, 1.0f));
-            glm::vec4 p1 = glm::vec4(0.5f * obsLength, 0.025f, 0.0f, 1.0f);
-            glm::vec4 p2 = glm::vec4(-0.5f * obsLength, 0.025f, 0.0f, 1.0f);
-            glm::vec4 p3 = glm::vec4(-0.5f * obsLength, -0.025f, 0.0f, 1.0f);
-            glm::vec4 p4 = glm::vec4(0.5f * obsLength, -0.025f, 0.0f, 1.0f);
+            glm::vec4 p1 = glm::vec4(0.5f * obsLength, 7.5f, 0.0f, 1.0f);
+            glm::vec4 p2 = glm::vec4(-0.5f * obsLength, 7.5f, 0.0f, 1.0f);
+            glm::vec4 p3 = glm::vec4(-0.5f * obsLength, -7.5f, 0.0f, 1.0f);
+            glm::vec4 p4 = glm::vec4(0.5f * obsLength, -7.5f, 0.0f, 1.0f);
 
             p1 = obsPR * p1;
             p2 = obsPR * p2;

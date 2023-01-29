@@ -436,6 +436,7 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
   /usr/include/c++/12.2.1/deque \
   /usr/include/c++/12.2.1/bits/stl_deque.h \
   /usr/include/c++/12.2.1/bits/deque.tcc \
+  /home/jaithepaneeer/CG/A1/include/text.h \
   /usr/include/c++/12.2.1/map \
   /usr/include/c++/12.2.1/bits/stl_tree.h \
   /usr/include/c++/12.2.1/ext/aligned_buffer.h \
@@ -1235,6 +1236,8 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.1/include/avx512vp2intersectintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.1/include/xsaveintrin.h:
+
+/home/jaithepaneeer/CG/A1/include/text.h:
 
 /usr/include/math.h:
 

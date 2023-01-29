@@ -368,7 +368,8 @@ CMakeFiles/app.dir/src/jjride.cpp.o: \
  /usr/include/c++/12.2.1/bits/vector.tcc \
  /home/jaithepaneeer/CG/A1/include/obstacle.h \
  /usr/include/c++/12.2.1/deque /usr/include/c++/12.2.1/bits/stl_deque.h \
- /usr/include/c++/12.2.1/bits/deque.tcc /usr/include/c++/12.2.1/map \
+ /usr/include/c++/12.2.1/bits/deque.tcc \
+ /home/jaithepaneeer/CG/A1/include/text.h /usr/include/c++/12.2.1/map \
  /usr/include/c++/12.2.1/bits/stl_tree.h \
  /usr/include/c++/12.2.1/ext/aligned_buffer.h \
  /usr/include/c++/12.2.1/bits/stl_map.h /usr/include/c++/12.2.1/tuple \
