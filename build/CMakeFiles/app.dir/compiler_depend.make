@@ -416,6 +416,7 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
   /usr/include/c++/12.2.1/bits/stl_vector.h \
   /usr/include/c++/12.2.1/bits/stl_bvector.h \
   /usr/include/c++/12.2.1/bits/vector.tcc \
+  /home/jaithepaneeer/CG/A1/include/obstacle.h \
   /usr/include/c++/12.2.1/deque \
   /usr/include/c++/12.2.1/bits/stl_deque.h \
   /usr/include/c++/12.2.1/bits/deque.tcc
@@ -1152,6 +1153,8 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
 /usr/include/c++/12.2.1/cfloat:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.1/include/uintrintrin.h:
+
+/home/jaithepaneeer/CG/A1/include/obstacle.h:
 
 /usr/include/c++/12.2.1/cstdlib:
 
