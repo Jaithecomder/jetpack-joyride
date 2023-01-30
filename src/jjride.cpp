@@ -3,9 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <glm/gtc/type_ptr.hpp> 
 
 // Custom Headers
 #include <shader.h>
@@ -40,6 +38,9 @@ float downacc = -15;
 float uplim = 160;
 float downlim = -160;
 
+int windowWidth;
+int windowHeight;
+
 // platform
 float platSpeed = 0;
 
@@ -50,6 +51,8 @@ float lastFrame = 0.0f;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+    windowWidth = width;
+    windowHeight = height;
 }
 
 void processInput(GLFWwindow *window)
@@ -117,13 +120,13 @@ int main(int argc, char ** argv)
     }
 
     FT_Face face;
-    if (FT_New_Face(ft, "../fonts/Arial.ttf", 0, &face))
+    if (FT_New_Face(ft, "../fonts/Poppins-ExtraLight.ttf", 0, &face))
     {
-        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;  
+        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl; 
         return -1;
     }
 
-    FT_Set_Pixel_Sizes(face, 0, 48);
+    FT_Set_Pixel_Sizes(face, 0, 192);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -134,6 +137,7 @@ int main(int argc, char ** argv)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     textInit();
 
@@ -185,9 +189,12 @@ int main(int argc, char ** argv)
 
     Mesh obstacles(obstacleVert, obstacleInd);
 
-    glm::mat4 projection = glm::ortho(-400.0f, 400.0f, -250.0f, 250.0f, -1.0f, 1.0f);
     while(!glfwWindowShouldClose(window))
     {
+        float ratio = (float)windowWidth / windowHeight;
+        float height = 250.f;
+        float width = height * ratio;
+        glm::mat4 projection = glm::ortho(-width, width, -height, height, -1.0f, 1.0f);
         processInput(window);
 
         float currentFrame = glfwGetTime();
@@ -302,7 +309,16 @@ int main(int argc, char ** argv)
         textshader.setMat4("view", view);
         textshader.setMat4("model", model);
 
-        RenderText(textshader, "This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), VAO, VBO);
+        std::string dist = "Distance : ";
+
+        std::string level = "Level : ";
+        level += std::to_string(Level);
+
+        std::string coins = "Coins : ";
+
+        RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+        RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+        RenderText(textshader, coins, width - 150, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

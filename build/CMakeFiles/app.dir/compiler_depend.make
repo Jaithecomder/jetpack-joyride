@@ -283,34 +283,6 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
   /usr/include/string.h \
   /usr/include/strings.h \
   /home/jaithepaneeer/CG/A1/libraries/glm/glm/gtc/type_ptr.inl \
-  /usr/include/freetype2/ft2build.h \
-  /usr/include/freetype2/freetype/config/ftheader.h \
-  /usr/include/freetype2/freetype/freetype.h \
-  /usr/include/freetype2/freetype/config/ftconfig.h \
-  /usr/include/freetype2/freetype/config/ftoption.h \
-  /usr/include/freetype2/freetype/config/ftstdlib.h \
-  /usr/include/stdio.h \
-  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.1/include/stdarg.h \
-  /usr/include/bits/types/__fpos_t.h \
-  /usr/include/bits/types/__mbstate_t.h \
-  /usr/include/bits/types/__fpos64_t.h \
-  /usr/include/bits/types/__FILE.h \
-  /usr/include/bits/types/FILE.h \
-  /usr/include/bits/types/struct_FILE.h \
-  /usr/include/bits/types/cookie_io_functions_t.h \
-  /usr/include/bits/stdio_lim.h \
-  /usr/include/setjmp.h \
-  /usr/include/bits/setjmp.h \
-  /usr/include/bits/types/struct___jmp_buf_tag.h \
-  /usr/include/freetype2/freetype/config/integer-types.h \
-  /usr/include/freetype2/freetype/config/public-macros.h \
-  /usr/include/freetype2/freetype/config/mac-support.h \
-  /usr/include/freetype2/freetype/fttypes.h \
-  /usr/include/freetype2/freetype/ftsystem.h \
-  /usr/include/freetype2/freetype/ftimage.h \
-  /usr/include/freetype2/freetype/fterrors.h \
-  /usr/include/freetype2/freetype/ftmoderr.h \
-  /usr/include/freetype2/freetype/fterrdef.h \
   /home/jaithepaneeer/CG/A1/include/shader.h \
   /usr/include/c++/12.2.1/string \
   /usr/include/c++/12.2.1/bits/stringfwd.h \
@@ -319,8 +291,12 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
   /usr/include/c++/12.2.1/bits/postypes.h \
   /usr/include/c++/12.2.1/cwchar \
   /usr/include/wchar.h \
+  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.1/include/stdarg.h \
   /usr/include/bits/types/wint_t.h \
   /usr/include/bits/types/mbstate_t.h \
+  /usr/include/bits/types/__mbstate_t.h \
+  /usr/include/bits/types/__FILE.h \
+  /usr/include/bits/types/FILE.h \
   /usr/include/c++/12.2.1/bits/allocator.h \
   /usr/include/c++/12.2.1/x86_64-pc-linux-gnu/bits/c++allocator.h \
   /usr/include/c++/12.2.1/bits/new_allocator.h \
@@ -363,6 +339,12 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
   /usr/include/c++/12.2.1/bits/stl_construct.h \
   /usr/include/c++/12.2.1/ext/string_conversions.h \
   /usr/include/c++/12.2.1/cstdio \
+  /usr/include/stdio.h \
+  /usr/include/bits/types/__fpos_t.h \
+  /usr/include/bits/types/__fpos64_t.h \
+  /usr/include/bits/types/struct_FILE.h \
+  /usr/include/bits/types/cookie_io_functions_t.h \
+  /usr/include/bits/stdio_lim.h \
   /usr/include/c++/12.2.1/cerrno \
   /usr/include/errno.h \
   /usr/include/bits/errno.h \
@@ -397,6 +379,8 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
   /usr/include/bits/timex.h \
   /usr/include/bits/types/struct_tm.h \
   /usr/include/bits/types/struct_itimerspec.h \
+  /usr/include/bits/setjmp.h \
+  /usr/include/bits/types/struct___jmp_buf_tag.h \
   /usr/include/c++/12.2.1/x86_64-pc-linux-gnu/bits/atomic_word.h \
   /usr/include/sys/single_threaded.h \
   /usr/include/c++/12.2.1/bits/locale_classes.h \
@@ -437,6 +421,22 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
   /usr/include/c++/12.2.1/bits/stl_deque.h \
   /usr/include/c++/12.2.1/bits/deque.tcc \
   /home/jaithepaneeer/CG/A1/include/text.h \
+  /usr/include/freetype2/ft2build.h \
+  /usr/include/freetype2/freetype/config/ftheader.h \
+  /usr/include/freetype2/freetype/freetype.h \
+  /usr/include/freetype2/freetype/config/ftconfig.h \
+  /usr/include/freetype2/freetype/config/ftoption.h \
+  /usr/include/freetype2/freetype/config/ftstdlib.h \
+  /usr/include/setjmp.h \
+  /usr/include/freetype2/freetype/config/integer-types.h \
+  /usr/include/freetype2/freetype/config/public-macros.h \
+  /usr/include/freetype2/freetype/config/mac-support.h \
+  /usr/include/freetype2/freetype/fttypes.h \
+  /usr/include/freetype2/freetype/ftsystem.h \
+  /usr/include/freetype2/freetype/ftimage.h \
+  /usr/include/freetype2/freetype/fterrors.h \
+  /usr/include/freetype2/freetype/ftmoderr.h \
+  /usr/include/freetype2/freetype/fterrdef.h \
   /usr/include/c++/12.2.1/map \
   /usr/include/c++/12.2.1/bits/stl_tree.h \
   /usr/include/c++/12.2.1/ext/aligned_buffer.h \
@@ -452,6 +452,22 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
 /usr/include/c++/12.2.1/bits/uses_allocator.h:
 
 /usr/include/c++/12.2.1/ext/aligned_buffer.h:
+
+/usr/include/freetype2/freetype/ftmoderr.h:
+
+/usr/include/freetype2/freetype/fterrors.h:
+
+/usr/include/freetype2/freetype/ftimage.h:
+
+/usr/include/freetype2/freetype/ftsystem.h:
+
+/usr/include/freetype2/freetype/config/mac-support.h:
+
+/usr/include/freetype2/freetype/config/public-macros.h:
+
+/usr/include/freetype2/freetype/config/ftoption.h:
+
+/usr/include/freetype2/ft2build.h:
 
 /usr/include/c++/12.2.1/bits/stl_vector.h:
 
@@ -473,6 +489,10 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
 
 /usr/include/c++/12.2.1/bits/locale_facets.tcc:
 
+/usr/include/setjmp.h:
+
+/usr/include/c++/12.2.1/x86_64-pc-linux-gnu/bits/ctype_inline.h:
+
 /usr/include/c++/12.2.1/x86_64-pc-linux-gnu/bits/ctype_base.h:
 
 /usr/include/c++/12.2.1/cwctype:
@@ -488,6 +508,8 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
 /usr/include/sys/single_threaded.h:
 
 /usr/include/c++/12.2.1/x86_64-pc-linux-gnu/bits/atomic_word.h:
+
+/usr/include/bits/setjmp.h:
 
 /usr/include/bits/timex.h:
 
@@ -518,6 +540,10 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
 /usr/include/bits/errno.h:
 
 /usr/include/c++/12.2.1/cerrno:
+
+/usr/include/bits/types/cookie_io_functions_t.h:
+
+/usr/include/bits/types/__fpos_t.h:
 
 /usr/include/c++/12.2.1/cstdio:
 
@@ -577,49 +603,23 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
 
 /usr/include/c++/12.2.1/bits/allocator.h:
 
-/usr/include/c++/12.2.1/bits/postypes.h:
-
-/usr/include/c++/12.2.1/bits/char_traits.h:
-
-/usr/include/freetype2/freetype/ftmoderr.h:
-
-/usr/include/freetype2/freetype/fterrors.h:
-
-/usr/include/freetype2/freetype/ftimage.h:
-
-/usr/include/freetype2/freetype/ftsystem.h:
-
-/usr/include/freetype2/freetype/config/mac-support.h:
-
-/usr/include/freetype2/freetype/config/public-macros.h:
-
-/usr/include/bits/setjmp.h:
-
-/usr/include/c++/12.2.1/x86_64-pc-linux-gnu/bits/ctype_inline.h:
-
-/usr/include/setjmp.h:
-
-/usr/include/bits/types/cookie_io_functions_t.h:
-
 /usr/include/c++/12.2.1/new:
 
 /usr/include/bits/types/FILE.h:
 
-/usr/include/c++/12.2.1/bits/memoryfwd.h:
-
-/usr/include/bits/types/__fpos64_t.h:
-
 /usr/include/bits/types/__mbstate_t.h:
-
-/usr/include/bits/types/__fpos_t.h:
 
 /usr/include/bits/types/struct_itimerspec.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.1/include/stdarg.h:
 
-/usr/include/freetype2/freetype/config/ftoption.h:
+/usr/include/c++/12.2.1/bits/postypes.h:
 
-/usr/include/freetype2/ft2build.h:
+/usr/include/c++/12.2.1/bits/char_traits.h:
+
+/usr/include/bits/types/__fpos64_t.h:
+
+/usr/include/c++/12.2.1/bits/memoryfwd.h:
 
 /home/jaithepaneeer/CG/A1/libraries/glm/glm/gtc/type_ptr.inl:
 

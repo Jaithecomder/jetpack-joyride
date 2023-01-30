@@ -85,6 +85,7 @@ void RenderText(Shader &shader, std::string text, float x, float y, float scale,
 {
     shader.use();
     shader.setVec4("ourColor", glm::vec4(color, 1.0f));
+    shader.setInt("text", 0);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 
