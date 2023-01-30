@@ -37,12 +37,18 @@ float upacc = 10;
 float downacc = -15;
 float uplim = 160;
 float downlim = -160;
+float distance = 0;
 
+// window
 int windowWidth;
 int windowHeight;
 
 // platform
 float platSpeed = 0;
+
+// game
+bool over = false;
+bool win = false;
 
 // timing
 float deltaTime = 0.0f;
@@ -154,6 +160,20 @@ int main(int argc, char ** argv)
 
     Mesh player(playerVert, playerInd);
 
+    std::vector<float> bgVert{
+        -450.0f, -200.0f, 0.0f, 1.0f, 1.0f,
+        -450.0f, -250.0f, 0.0f, 0.0f, 1.0f,
+        450.0f, -250.0f, 0.0f, 0.0f, 0.0f,
+        450.0f, -200.0f, 0.0f, 1.0f, 0.0f
+    };
+
+    std::vector<unsigned int> bgInd{
+        0, 1, 2,
+        0, 2, 3
+    };
+
+    Mesh background(bgVert, bgInd);
+
     std::vector<float> platformVert{
         -450.0f, -200.0f, 0.0f, 1.0f, 1.0f,
         -450.0f, -250.0f, 0.0f, 0.0f, 1.0f,
@@ -201,16 +221,78 @@ int main(int argc, char ** argv)
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        if(distance > 100)
+        {
+            if(Level < 3)
+            {
+                Level++;
+                distance = 0;
+            }
+            else
+            {
+                win = true;
+            }
+        }
+
         // rendering
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        myshader.use();
-        myshader.setMat4("projection", projection);
-
-        // draw player
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 model = glm::mat4(1.0f);
+
+        myshader.use();
+        view = glm::lookAt(camPos, camPos + camFront, camUp);
+        myshader.setMat4("projection", projection);
+
+        // draw background
+        model = glm::mat4(1.0f);
+
+        // draw platforms
+        model = glm::mat4(1.0f);
+
+        myshader.setMat4("view", view);
+        myshader.setMat4("model", model);
+        myshader.setVec4("ourColor", 0.0f, 1.0f, 0.0f, 1.0f);
+
+        platforms.drawObject();
+
+        glBindVertexArray(0);
+
+        if(over || win)
+        {
+            std::string dist = "Distance : ";
+            dist += std::to_string((int)(distance + 100 * (Level - 1)));
+            dist += "m";
+
+            std::string level = "Level : ";
+            level += std::to_string(Level);
+
+            std::string coins = "Coins : ";
+
+            RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+            RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+            RenderText(textshader, coins, width - 150, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+            if(over)
+            {
+                // game over
+                RenderText(textshader, "Game", -300.0f, 50.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+                RenderText(textshader, "Over", -225.0f, -150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+            }
+            if(win)
+            {
+                // you win
+                RenderText(textshader, "You", -200.0f, 50.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+                RenderText(textshader, "Win", -175.0f, -150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+            }
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+            continue;
+        }
+
+        // draw player
+        
+        model = glm::mat4(1.0f);
 
         if(playerPos.y > uplim)
         {
@@ -225,7 +307,6 @@ int main(int argc, char ** argv)
         }
 
         model = glm::translate(model, playerPos);
-        view = glm::lookAt(camPos, camPos + camFront, camUp);
 
         myshader.setMat4("view", view);
         myshader.setMat4("model", model);
@@ -233,37 +314,23 @@ int main(int argc, char ** argv)
 
         player.drawObject();
 
-        //draw platforms
-        view = glm::mat4(1.0f);
-        model = glm::mat4(1.0f);
-
-        view = glm::lookAt(camPos, camPos + camFront, camUp);
-
-        myshader.setMat4("view", view);
-        myshader.setMat4("model", model);
-        myshader.setVec4("ourColor", 0.0f, 1.0f, 0.0f, 1.0f);
-
-        platforms.drawObject();
-
-        glBindVertexArray(0);
-
-        //draw obstacles
+        // draw obstacles
 
         if(spawnCounter == 0)
         {
             spawnCounter = obsCount;
-            obstacle zapper;
+            obstacle zapper(Level);
             obsQueue.push_back(zapper);
         }
         else
         {
-            spawnCounter -= Level;
+            spawnCounter--;
         }
 
         // if(spawnCounter == 0)
         // {
         //     spawnCounter++;
-        //     obstacle zapper;
+        //     obstacle zapper(Level);
         //     obsQueue.push_back(zapper);
         // }
 
@@ -276,23 +343,37 @@ int main(int argc, char ** argv)
                 continue;
             }
 
-            if(obsQueue[i].checkCol(playerPos, px, py))
-            {
-                glfwSetWindowShouldClose(window, true);
-            }
-
-            view = glm::mat4(1.0f);
+            
             model = glm::mat4(1.0f);
 
-            obsQueue[i].obsPos.x += obsQueue[i].obsSpeed * deltaTime;
+            obsQueue[i].obsPos.x -= obsSpeed * deltaTime;
 
             model = glm::translate(model, obsQueue[i].obsPos);
+            obsQueue[i].obsRotate = obsQueue[i].obsRotate + obsQueue[i].obsAngSpeed;
+            if(obsQueue[i].obsRotate >= 180)
+            {
+                obsQueue[i].obsRotate -= 180;
+            }
             model = glm::rotate(model, glm::radians(obsQueue[i].obsRotate), glm::vec3(0.0f, 0.0f, 1.0f));
-            view = glm::lookAt(camPos, camPos + camFront, camUp);
 
-            myshader.setMat4("view", view);
+            if(obsQueue[i].checkCol(playerPos, px, py, model))
+            {
+                over = true;
+            }
+
             myshader.setMat4("model", model);
-            myshader.setVec4("ourColor", 1.0f, 1.0f, 0.0f, 1.0f);
+            if(Level == 1)
+            {
+                myshader.setVec4("ourColor", 1.0f, 1.0f, 0.0f, 1.0f);
+            }
+            if(Level == 2)
+            {
+                myshader.setVec4("ourColor", 0.0f, 1.0f, 1.0f, 1.0f);
+            }
+            if(Level == 3)
+            {
+                myshader.setVec4("ourColor", 0.5f, 0.0f, 1.0f, 1.0f);
+            }
 
             obstacles.drawObject();
 
@@ -303,13 +384,15 @@ int main(int argc, char ** argv)
         textshader.use();
         textshader.setMat4("projection", projection);
 
-        view = glm::mat4(1.0f);
         model = glm::mat4(1.0f);
 
         textshader.setMat4("view", view);
         textshader.setMat4("model", model);
 
+        distance += obsSpeed * deltaTime / 100;
         std::string dist = "Distance : ";
+        dist += std::to_string((int)distance);
+        dist += "m";
 
         std::string level = "Level : ";
         level += std::to_string(Level);

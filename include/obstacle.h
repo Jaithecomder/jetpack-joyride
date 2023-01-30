@@ -7,42 +7,46 @@
 
 #include <deque>
 
-float obsLength = 125;
+float obsLength = 150;
 unsigned obsCount = 100;
 unsigned int spawnCounter = 0;
 unsigned int Level = 1;
+float obsSpeed = 200;
+
 class obstacle
 {
     public:
         glm::vec3 obsPos;
         float obsRotate;
-        float obsSpeed;
         float obsAngSpeed;
 
-        obstacle()
+        obstacle(unsigned int Level)
         {
             this->obsPos = glm::vec3(750.0f, 0.0f,  0.0f);
             this->obsRotate = rand() % 180;
             this->obsPos.y = ((float)(rand() % 5) / (float)5 - 0.4) * 300;
             // this->obsPos.y = -0.6;
-            this->obsSpeed = -200;
-            this->obsAngSpeed = 0;
+            if(Level == 1)
+            {
+                this->obsAngSpeed = 0;
+            }
+            else
+            {
+                this->obsAngSpeed = rand() % 5;
+            }
         }
 
-        bool checkCol(glm::vec3 &playerPos, float px, float py)
+        bool checkCol(glm::vec3 &playerPos, float px, float py, glm::mat4 obsModel)
         {
-            glm::mat4 obsPR = glm::mat4(1.0f);
-            obsPR = glm::translate(obsPR, this->obsPos);
-            obsPR = glm::rotate(obsPR, glm::radians(this->obsRotate), glm::vec3(0.0f, 0.0f, 1.0f));
             glm::vec4 p1 = glm::vec4(0.5f * obsLength, 7.5f, 0.0f, 1.0f);
             glm::vec4 p2 = glm::vec4(-0.5f * obsLength, 7.5f, 0.0f, 1.0f);
             glm::vec4 p3 = glm::vec4(-0.5f * obsLength, -7.5f, 0.0f, 1.0f);
             glm::vec4 p4 = glm::vec4(0.5f * obsLength, -7.5f, 0.0f, 1.0f);
 
-            p1 = obsPR * p1;
-            p2 = obsPR * p2;
-            p3 = obsPR * p3;
-            p4 = obsPR * p4;
+            p1 = obsModel * p1;
+            p2 = obsModel * p2;
+            p3 = obsModel * p3;
+            p4 = obsModel * p4;
 
             float low, high;
 
@@ -94,8 +98,6 @@ class obstacle
                     return false;
                 }
 
-                bool p2in = (p2.x < px + playerPos.x) & (p2.x > -px + playerPos.x);
-                bool p4in = (p4.x < px + playerPos.x) & (p4.x > -px + playerPos.x);
                 if(p1m == 0)
                 {
                     high = p1.y;
