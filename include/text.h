@@ -100,13 +100,13 @@ void RenderText(Shader &shader, std::string text, float x, float y, float scale,
         float h = ch.Size.y * scale;
 
         std::vector<float> vertices{
-            xpos, ypos + h, 0.0f, 0.0f, 0.0f,
-            xpos, ypos, 0.0f, 0.0f, 1.0f,
-            xpos + w, ypos, 0.0f, 1.0f, 1.0f,
+            xpos, ypos + h, 10.0f, 0.0f, 0.0f,
+            xpos, ypos, 10.0f, 0.0f, 1.0f,
+            xpos + w, ypos, 10.0f, 1.0f, 1.0f,
 
-            xpos, ypos + h, 0.0f, 0.0f, 0.0f,
-            xpos + w, ypos, 0.0f, 1.0f, 1.0f,
-            xpos + w, ypos + h, 0.0f, 1.0f, 0.0f,
+            xpos, ypos + h, 10.0f, 0.0f, 0.0f,
+            xpos + w, ypos, 10.0f, 1.0f, 1.0f,
+            xpos + w, ypos + h, 10.0f, 1.0f, 0.0f,
         };
 
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);

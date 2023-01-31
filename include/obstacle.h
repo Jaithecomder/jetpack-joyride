@@ -9,9 +9,9 @@
 
 float obsLength = 150;
 unsigned obsCount = 100;
-unsigned int spawnCounter = 0;
+int spawnCounter = 0;
 unsigned int Level = 1;
-unsigned int ldist = 30;
+unsigned int ldist = 100;
 float obsOscPos = 120;
 float obsSpeed = 200;
 

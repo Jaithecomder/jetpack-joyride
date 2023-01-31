@@ -144,6 +144,7 @@ int main(int argc, char ** argv)
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -164,10 +165,10 @@ int main(int argc, char ** argv)
     Mesh player(playerVert, playerInd);
 
     std::vector<float> bgVert{
-        450.0f, 250.0f, 0.0f, 1.0f, 1.0f,
-        -450.0f, 250.0f, 0.0f, 0.0f, 1.0f,
-        -450.0f, -250.0f, 0.0f, 0.0f, 0.0f,
-        450.0f, -250.0f, 0.0f, 1.0f, 0.0f
+        450.0f, 250.0f, -50.0f, 1.0f, 1.0f,
+        -450.0f, 250.0f, -50.0f, 0.0f, 1.0f,
+        -450.0f, -250.0f, -50.0f, 0.0f, 0.0f,
+        450.0f, -250.0f, -50.0f, 1.0f, 0.0f
     };
 
     std::vector<unsigned int> bgInd{
@@ -217,20 +218,20 @@ int main(int argc, char ** argv)
 
     for(int i = 0; i < csides; i++)
     {
-        float angle = (float)360 / (float)100;
+        float angle = i * (float)360 / (float)csides;
         float x = glm::sin(glm::radians(angle));
-        float y = -glm::cos(glm::radians(angle));
-        float z = 1.0f;
+        float y = -1 * glm::cos(glm::radians(angle));
+        float z = thickness;
         cvert.push_back(cradius * x);
         cvert.push_back(cradius * y);
         cvert.push_back(z);
         cvert.push_back(x);
         cvert.push_back(y);
 
-        cvert.push_back(-cradius * x);
+        cvert.push_back(cradius * x);
         cvert.push_back(cradius * y);
         cvert.push_back(-z);
-        cvert.push_back(-x);
+        cvert.push_back(x);
         cvert.push_back(y);
     }
 
@@ -271,7 +272,7 @@ int main(int argc, char ** argv)
         float ratio = (float)windowWidth / windowHeight;
         float height = 250.f;
         float width = height * ratio;
-        glm::mat4 projection = glm::ortho(-width, width, -height, height, -1.0f, 1.0f);
+        glm::mat4 projection = glm::ortho(-width, width, -height, height, -100.0f, 100.0f);
         processInput(window);
 
         float currentFrame = glfwGetTime();
@@ -336,6 +337,7 @@ int main(int argc, char ** argv)
             level += std::to_string(Level);
 
             std::string coins = "Coins : ";
+            coins += std::to_string(coinswon);
 
             RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
             RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
@@ -383,29 +385,79 @@ int main(int argc, char ** argv)
 
         player.drawObject();
 
+        glBindVertexArray(0);
+
         // draw coins---------------------------------------------------------------------
+        myshader.use();
+        myshader.setMat4("projection", projection);
+        myshader.setMat4("view", view);
 
-        // myshader.use();
-        // myshader.setMat4("projection", projection);
+        model = glm::mat4(1.0f);
 
-        // model = glm::mat4(1.0f);
+        if(coinCounter == 0 && distance < ldist - 10)
+        {
+            coinCounter = cc;
+            coin paisa;
+            coinQueue.push_back(paisa);
+        }
+        else
+        {
+            coinCounter -= Level;
+        }
 
-        // if(coinQueue.size() == 0)
+        // if(coinCounter == 0)
         // {
-        //     coin p&& distance < 90
-        // myshader.setVec4("ourColor", 1.0f, 1.0f, 0.0f, 1.0f);
+        //     coinCounter++;
+        //     coin paisa;
+        //     coinQueue.push_back(paisa);
+        // }
 
-        // coinFaces.drawObject();
-        // coinSides.drawObject();
 
-        // model = glm::translate(model, playerPos);
+        for(int i = 0; i < coinQueue.size(); i++)
+        {
+            if(coinQueue[i].pos.x < -750.0)
+            {
+                coinQueue.pop_front();
+                i--;
+                continue;
+            }
+
+            model = glm::mat4(1.0f);
+
+            coinQueue[i].pos.x -= coinSpeed * deltaTime;
+            model = glm::translate(model, coinQueue[i].pos);
+            if(coinQueue[i].show)
+            {
+                if(coinQueue[i].checkCol(playerPos, px, py))
+                {
+                    coinQueue[i].show = false;
+                    coinswon++;
+                }
+                coinRotate = coinRotate + coinAngSpeed;
+
+                if(coinRotate >= 180)
+                {
+                    coinRotate -= 180;
+                }
+
+                model = glm::rotate(model, glm::radians(coinRotate), glm::vec3(0.0f, 1.0f, 0.0f));
+                myshader.setMat4("model", model);
+
+                myshader.setVec4("ourColor", 1.0f, 1.0f, 0.0f, 1.0f);
+                coinFaces.drawObject();
+                myshader.setVec4("ourColor", 1.0f, 0.0f, 0.0f, 1.0f);
+                coinSides.drawObject();
+
+                glBindVertexArray(0);
+            }
+        }
 
         // draw obstacles-----------------------------------------------------------------
         obsshader.use();
         obsshader.setMat4("projection", projection);
         obsshader.setMat4("view", view);
 
-        if(spawnCounter <= 0)
+        if(spawnCounter <= 0 && distance < ldist - 10)
         {
             spawnCounter = obsCount;
             obstacle zapper(Level);
@@ -493,6 +545,7 @@ int main(int argc, char ** argv)
         level += std::to_string(Level);
 
         std::string coins = "Coins : ";
+        coins += std::to_string(coinswon);
 
         RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
         RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
