@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/fast_square_root.hpp>
 
 #include <mesh.h>
 
@@ -39,11 +40,11 @@ class coin
             float range = 0;
             if(this->pos.x > px + playerPos.x)
             {
-                range = sqrt(cradius * cradius - (this->pos.x - px) * (this->pos.x - px));
+                range = glm::fastSqrt(cradius * cradius - (this->pos.x - (px + playerPos.x)) * (this->pos.x - (px + playerPos.x)));
             }
             else if(this->pos.x < -px + playerPos.x)
             {
-                range = sqrt(cradius * cradius - (-px - this->pos.x) * (-px - this->pos.x));
+                range = glm::fastSqrt(cradius * cradius - ((-px + playerPos.x) - this->pos.x) * ((-px + playerPos.x) - this->pos.x));
             }
             else
             {

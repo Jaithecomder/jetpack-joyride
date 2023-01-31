@@ -269,9 +269,9 @@ int main(int argc, char ** argv)
 
     while(!glfwWindowShouldClose(window))
     {
-        float ratio = (float)windowWidth / windowHeight;
-        float height = 250.f;
-        float width = height * ratio;
+        float ratio = (float)windowHeight / windowWidth;
+        float width = 400.0f;
+        float height = width * ratio;
         glm::mat4 projection = glm::ortho(-width, width, -height, height, -100.0f, 100.0f);
         processInput(window);
 

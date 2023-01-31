@@ -445,8 +445,14 @@ CMakeFiles/app.dir/src/jjride.cpp.o: /home/jaithepaneeer/CG/A1/src/jjride.cpp \
   /usr/include/c++/12.2.1/bits/uses_allocator.h \
   /usr/include/c++/12.2.1/bits/stl_multimap.h \
   /usr/include/c++/12.2.1/bits/erase_if.h \
-  /home/jaithepaneeer/CG/A1/include/coins.h
+  /home/jaithepaneeer/CG/A1/include/coins.h \
+  /home/jaithepaneeer/CG/A1/libraries/glm/glm/gtx/fast_square_root.hpp \
+  /home/jaithepaneeer/CG/A1/libraries/glm/glm/gtx/fast_square_root.inl
 
+
+/home/jaithepaneeer/CG/A1/libraries/glm/glm/gtx/fast_square_root.inl:
+
+/home/jaithepaneeer/CG/A1/libraries/glm/glm/gtx/fast_square_root.hpp:
 
 /home/jaithepaneeer/CG/A1/include/coins.h:
 
