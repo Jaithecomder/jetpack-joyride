@@ -3,7 +3,9 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp> 
+#include <glm/gtc/type_ptr.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 // Custom Headers
 #include <shader.h>
@@ -34,7 +36,7 @@ glm::vec3 playerPos = glm::vec3(-300.0f, 0.0f,  0.0f);
 unsigned int pressTime = 0;
 unsigned int releaseTime = 0;
 float playerSpeed = 0;
-float upacc = 10;
+float upacc = 15;
 float downacc = -15;
 float uplim = 160;
 float downlim = -160;
@@ -44,8 +46,15 @@ float distance = 0;
 int windowWidth;
 int windowHeight;
 
+// background
+float behindspeed = 20;
+float behindpos = 0;
+float frontspeed = 30;
+float frontpos = 0;
+
 // platform
-float platSpeed = 0;
+float platSpeed = 200;
+float platpos = 0;
 
 // game
 bool over = false;
@@ -120,6 +129,9 @@ int main(int argc, char ** argv)
     Shader textshader("../src/vertex.shader", "../src/textfrag.shader");
     Shader playershader("../src/vertex.shader", "../src/playerfrag.shader");
     Shader obsshader("../src/vertex.shader", "../src/obsfrag.shader");
+    Shader bgshader("../src/vertex.shader", "../src/bgfrag.shader");
+    Shader frontshader("../src/vertex.shader", "../src/frontfrag.shader");
+    Shader platshader("../src/vertex.shader", "../src/platfrag.shader");
 
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
@@ -165,10 +177,10 @@ int main(int argc, char ** argv)
     Mesh player(playerVert, playerInd);
 
     std::vector<float> bgVert{
-        450.0f, 250.0f, -50.0f, 1.0f, 1.0f,
-        -450.0f, 250.0f, -50.0f, 0.0f, 1.0f,
-        -450.0f, -250.0f, -50.0f, 0.0f, 0.0f,
-        450.0f, -250.0f, -50.0f, 1.0f, 0.0f
+        400.0f, 250.0f, 0.0f, 1.0f, 1.0f,
+        -400.0f, 250.0f, 0.0f, 0.0f, 1.0f,
+        -400.0f, -250.0f, 0.0f, 0.0f, 0.0f,
+        400.0f, -250.0f, 0.0f, 1.0f, 0.0f
     };
 
     std::vector<unsigned int> bgInd{
@@ -179,22 +191,14 @@ int main(int argc, char ** argv)
     Mesh background(bgVert, bgInd);
 
     std::vector<float> platformVert{
-        450.0f, -200.0f, 0.0f, 1.0f, 1.0f,
-        -450.0f, -200.0f, 0.0f, 0.0f, 1.0f,
-        -450.0f, -250.0f, 0.0f, 0.0f, 0.0f,
-        450.0f, -250.0f, 0.0f, 1.0f, 0.0f,
-
-        450.0f, 250.0f, 0.0f, 1.0f, 1.0f,
-        -450.0f, 250.0f, 0.0f, 0.0f, 1.0f,
-        -450.0f, 200.0f, 0.0f, 0.0f, 0.0f,
-        450.0f, 200.0f, 0.0f, 1.0f, 0.0f,
+        25.0f, -200.0f, 0.0f, 0.286f, 0.99f,
+        -25.0f, -200.0f, 0.0f, 0.143f, 0.99f,
+        -25.0f, -250.0f, 0.0f, 0.143f, 0.86f,
+        25.0f, -250.0f, 0.0f, 0.286f, 0.86f,
     };
     std::vector<unsigned int> platformInd{
         0, 1, 2,
         0, 2, 3,
-
-        4, 5, 6,
-        4, 6, 7
     };
 
     Mesh platforms(platformVert, platformInd);
@@ -267,6 +271,112 @@ int main(int argc, char ** argv)
 
     Mesh coinSides(cvert, csind);
 
+    unsigned int bg1, bg2, bg3, plat;
+    int iwidth, iheight, nocc;
+    unsigned char *data;
+
+    glGenTextures(1, &bg1);
+    glBindTexture(GL_TEXTURE_2D, bg1);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_set_flip_vertically_on_load(true);
+
+    data = stbi_load("../resources/background_layer_1.png", &iwidth, &iheight, &nocc, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, iwidth, iheight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+
+    glGenTextures(1, &bg2);
+    glBindTexture(GL_TEXTURE_2D, bg2);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_set_flip_vertically_on_load(true);
+
+    data = stbi_load("../resources/background_layer_2.png", &iwidth, &iheight, &nocc, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+
+    bgshader.use();
+    bgshader.setInt("bg1", 0);
+    bgshader.setInt("bg2", 1);
+
+    glGenTextures(1, &bg3);
+    glBindTexture(GL_TEXTURE_2D, bg3);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_set_flip_vertically_on_load(true);
+
+    data = stbi_load("../resources/background_layer_3.png", &iwidth, &iheight, &nocc, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+
+    frontshader.use();
+    frontshader.setInt("bg3", 2);
+
+    glGenTextures(1, &plat);
+    glBindTexture(GL_TEXTURE_2D, plat);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_set_flip_vertically_on_load(true);
+
+    data = stbi_load("../resources/MossyTileSet.png", &iwidth, &iheight, &nocc, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+
+    platshader.use();
+    platshader.setInt("plat", 3);
+
     while(!glfwWindowShouldClose(window))
     {
         float ratio = (float)windowHeight / windowWidth;
@@ -293,6 +403,15 @@ int main(int argc, char ** argv)
         }
 
         // rendering
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, bg1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, bg2);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, bg3);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, plat);
+
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -304,24 +423,64 @@ int main(int argc, char ** argv)
         myshader.setMat4("projection", projection);
 
         // draw background----------------------------------------------------------------
+        bgshader.use();
+        bgshader.setMat4("projection", projection);
+
+        if(behindpos < -800)
+        {
+            behindpos = 0;
+        }
+        behindpos -= behindspeed * deltaTime;
         model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(behindpos, 0.0f, -50.0f));
+        bgshader.setMat4("model", model);
+        background.drawObject();
 
-        myshader.setMat4("view", view);
-        myshader.setMat4("model", model);
-        myshader.setVec4("ourColor", 0.0f, 0.0f, 0.0f, 1.0f);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(behindpos + 800.0f, 0.0f, -50.0f));
+        bgshader.setMat4("model", model);
+        background.drawObject();
 
+        glBindVertexArray(0);
+
+        frontshader.use();
+        frontshader.setMat4("projection", projection);
+
+        if(frontpos < -800)
+        {
+            frontpos = 0;
+        }
+        frontpos -= frontspeed * deltaTime;
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(frontpos, 0.0f, -40.0f));
+        frontshader.setMat4("model", model);
+        background.drawObject();
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(frontpos + 800.0f, 0.0f, -40.0f));
+        frontshader.setMat4("model", model);
         background.drawObject();
 
         glBindVertexArray(0);
 
         // draw platforms-----------------------------------------------------------------
-        model = glm::mat4(1.0f);
+        platshader.use();
+        platshader.setMat4("projection", projection);
 
-        myshader.setMat4("view", view);
-        myshader.setMat4("model", model);
-        myshader.setVec4("ourColor", 0.0f, 1.0f, 0.0f, 1.0f);
+        platpos -= platSpeed * deltaTime;
+        if(platpos < -800)
+        {
+            platpos = 0;
+        }
 
-        platforms.drawObject();
+        for(int i = 0; i < 32; i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(platpos + 50 * i - 400, 0.0f, 0.0f));
+            platshader.setMat4("model", model);
+
+            platforms.drawObject();
+        }
 
         glBindVertexArray(0);
 
@@ -339,9 +498,9 @@ int main(int argc, char ** argv)
             std::string coins = "Coins : ";
             coins += std::to_string(coinswon);
 
-            RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
-            RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
-            RenderText(textshader, coins, width - 150, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+            RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
+            RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
+            RenderText(textshader, coins, width - 150, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
             if(over)
             {
                 // game over
@@ -379,7 +538,6 @@ int main(int argc, char ** argv)
 
         model = glm::translate(model, playerPos);
 
-        playershader.setMat4("view", view);
         playershader.setMat4("model", model);
         playershader.setVec4("ourColor", 1.0f, 0.0f, 0.0f, 1.0f);
 
@@ -390,11 +548,10 @@ int main(int argc, char ** argv)
         // draw coins---------------------------------------------------------------------
         myshader.use();
         myshader.setMat4("projection", projection);
-        myshader.setMat4("view", view);
 
         model = glm::mat4(1.0f);
 
-        if(coinCounter == 0 && distance < ldist - 10)
+        if(coinCounter <= 0 && distance < ldist - 10)
         {
             coinCounter = cc;
             coin paisa;
@@ -433,6 +590,7 @@ int main(int argc, char ** argv)
                     coinQueue[i].show = false;
                     coinswon++;
                 }
+
                 coinRotate = coinRotate + coinAngSpeed;
 
                 if(coinRotate >= 180)
@@ -455,7 +613,6 @@ int main(int argc, char ** argv)
         // draw obstacles-----------------------------------------------------------------
         obsshader.use();
         obsshader.setMat4("projection", projection);
-        obsshader.setMat4("view", view);
 
         if(spawnCounter <= 0 && distance < ldist - 10)
         {
@@ -531,7 +688,6 @@ int main(int argc, char ** argv)
 
         model = glm::mat4(1.0f);
 
-        textshader.setMat4("view", view);
         textshader.setMat4("model", model);
 
         distance += obsSpeed * deltaTime / 100;
@@ -547,9 +703,9 @@ int main(int argc, char ** argv)
         std::string coins = "Coins : ";
         coins += std::to_string(coinswon);
 
-        RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
-        RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
-        RenderText(textshader, coins, width - 150, 210.0f, 0.15f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+        RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
+        RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
+        RenderText(textshader, coins, width - 150, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
