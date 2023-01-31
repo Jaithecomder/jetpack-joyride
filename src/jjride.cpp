@@ -10,6 +10,7 @@
 #include <mesh.h>
 #include <obstacle.h>
 #include <text.h>
+#include <coins.h>
 
 // C++ Headers
 #include <iostream>
@@ -117,6 +118,8 @@ int main(int argc, char ** argv)
 
     Shader myshader("../src/vertex.shader", "../src/fragment.shader");
     Shader textshader("../src/vertex.shader", "../src/textfrag.shader");
+    Shader playershader("../src/vertex.shader", "../src/playerfrag.shader");
+    Shader obsshader("../src/vertex.shader", "../src/obsfrag.shader");
 
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
@@ -161,10 +164,10 @@ int main(int argc, char ** argv)
     Mesh player(playerVert, playerInd);
 
     std::vector<float> bgVert{
-        -450.0f, -200.0f, 0.0f, 1.0f, 1.0f,
-        -450.0f, -250.0f, 0.0f, 0.0f, 1.0f,
-        450.0f, -250.0f, 0.0f, 0.0f, 0.0f,
-        450.0f, -200.0f, 0.0f, 1.0f, 0.0f
+        450.0f, 250.0f, 0.0f, 1.0f, 1.0f,
+        -450.0f, 250.0f, 0.0f, 0.0f, 1.0f,
+        -450.0f, -250.0f, 0.0f, 0.0f, 0.0f,
+        450.0f, -250.0f, 0.0f, 1.0f, 0.0f
     };
 
     std::vector<unsigned int> bgInd{
@@ -175,14 +178,14 @@ int main(int argc, char ** argv)
     Mesh background(bgVert, bgInd);
 
     std::vector<float> platformVert{
-        -450.0f, -200.0f, 0.0f, 1.0f, 1.0f,
-        -450.0f, -250.0f, 0.0f, 0.0f, 1.0f,
-        450.0f, -250.0f, 0.0f, 0.0f, 0.0f,
-        450.0f, -200.0f, 0.0f, 1.0f, 0.0f,
+        450.0f, -200.0f, 0.0f, 1.0f, 1.0f,
+        -450.0f, -200.0f, 0.0f, 0.0f, 1.0f,
+        -450.0f, -250.0f, 0.0f, 0.0f, 0.0f,
+        450.0f, -250.0f, 0.0f, 1.0f, 0.0f,
 
-        -450.0f, 200.0f, 0.0f, 1.0f, 1.0f,
+        450.0f, 250.0f, 0.0f, 1.0f, 1.0f,
         -450.0f, 250.0f, 0.0f, 0.0f, 1.0f,
-        450.0f, 250.0f, 0.0f, 0.0f, 0.0f,
+        -450.0f, 200.0f, 0.0f, 0.0f, 0.0f,
         450.0f, 200.0f, 0.0f, 1.0f, 0.0f,
     };
     std::vector<unsigned int> platformInd{
@@ -209,6 +212,60 @@ int main(int argc, char ** argv)
 
     Mesh obstacles(obstacleVert, obstacleInd);
 
+    std::vector<float> cvert;
+    std::vector<unsigned int> cfind, csind;
+
+    for(int i = 0; i < csides; i++)
+    {
+        float angle = (float)360 / (float)100;
+        float x = glm::sin(glm::radians(angle));
+        float y = -glm::cos(glm::radians(angle));
+        float z = 1.0f;
+        cvert.push_back(cradius * x);
+        cvert.push_back(cradius * y);
+        cvert.push_back(z);
+        cvert.push_back(x);
+        cvert.push_back(y);
+
+        cvert.push_back(-cradius * x);
+        cvert.push_back(cradius * y);
+        cvert.push_back(-z);
+        cvert.push_back(-x);
+        cvert.push_back(y);
+    }
+
+    for(int i = 0; i < csides - 2; i++)
+    {
+        unsigned int x = 2 * (i + 1);
+        unsigned int y = 2 * (i + 2);
+        cfind.push_back(0);
+        cfind.push_back(x);
+        cfind.push_back(y);
+        cfind.push_back(1);
+        cfind.push_back(x + 1);
+        cfind.push_back(y + 1);
+    }
+
+    Mesh coinFaces(cvert, cfind);
+
+    for(int i = 0; i < 2 * csides - 2; i++)
+    {
+        unsigned int x = i + 1;
+        unsigned int y = i + 2;
+        csind.push_back(i);
+        csind.push_back(x);
+        csind.push_back(y);
+    }
+
+    csind.push_back(2 * csides - 2);
+    csind.push_back(2 * csides - 1);
+    csind.push_back(0);
+    csind.push_back(2 * csides - 1);
+    csind.push_back(0);
+    csind.push_back(1);
+
+    Mesh coinSides(cvert, csind);
+
     while(!glfwWindowShouldClose(window))
     {
         float ratio = (float)windowWidth / windowHeight;
@@ -221,7 +278,7 @@ int main(int argc, char ** argv)
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        if(distance > 100)
+        if(distance > ldist)
         {
             if(Level < 3)
             {
@@ -245,10 +302,18 @@ int main(int argc, char ** argv)
         view = glm::lookAt(camPos, camPos + camFront, camUp);
         myshader.setMat4("projection", projection);
 
-        // draw background
+        // draw background----------------------------------------------------------------
         model = glm::mat4(1.0f);
 
-        // draw platforms
+        myshader.setMat4("view", view);
+        myshader.setMat4("model", model);
+        myshader.setVec4("ourColor", 0.0f, 0.0f, 0.0f, 1.0f);
+
+        background.drawObject();
+
+        glBindVertexArray(0);
+
+        // draw platforms-----------------------------------------------------------------
         model = glm::mat4(1.0f);
 
         myshader.setMat4("view", view);
@@ -259,10 +324,12 @@ int main(int argc, char ** argv)
 
         glBindVertexArray(0);
 
+        // -------------------------------------------------------------------------------
+
         if(over || win)
         {
             std::string dist = "Distance : ";
-            dist += std::to_string((int)(distance + 100 * (Level - 1)));
+            dist += std::to_string((int)(distance + ldist * (Level - 1)));
             dist += "m";
 
             std::string level = "Level : ";
@@ -282,15 +349,17 @@ int main(int argc, char ** argv)
             if(win)
             {
                 // you win
-                RenderText(textshader, "You", -200.0f, 50.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
-                RenderText(textshader, "Win", -175.0f, -150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+                RenderText(textshader, "You", -200.0f, 50.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), VAO, VBO);
+                RenderText(textshader, "Win", -175.0f, -150.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), VAO, VBO);
             }
             glfwSwapBuffers(window);
             glfwPollEvents();
             continue;
         }
 
-        // draw player
+        // draw player-------------------------------------------------------------------------------
+        playershader.use();
+        playershader.setMat4("projection", projection);
         
         model = glm::mat4(1.0f);
 
@@ -308,15 +377,35 @@ int main(int argc, char ** argv)
 
         model = glm::translate(model, playerPos);
 
-        myshader.setMat4("view", view);
-        myshader.setMat4("model", model);
-        myshader.setVec4("ourColor", 1.0f, 0.0f, 0.0f, 1.0f);
+        playershader.setMat4("view", view);
+        playershader.setMat4("model", model);
+        playershader.setVec4("ourColor", 1.0f, 0.0f, 0.0f, 1.0f);
 
         player.drawObject();
 
-        // draw obstacles
+        // draw coins---------------------------------------------------------------------
 
-        if(spawnCounter == 0)
+        // myshader.use();
+        // myshader.setMat4("projection", projection);
+
+        // model = glm::mat4(1.0f);
+
+        // if(coinQueue.size() == 0)
+        // {
+        //     coin p&& distance < 90
+        // myshader.setVec4("ourColor", 1.0f, 1.0f, 0.0f, 1.0f);
+
+        // coinFaces.drawObject();
+        // coinSides.drawObject();
+
+        // model = glm::translate(model, playerPos);
+
+        // draw obstacles-----------------------------------------------------------------
+        obsshader.use();
+        obsshader.setMat4("projection", projection);
+        obsshader.setMat4("view", view);
+
+        if(spawnCounter <= 0)
         {
             spawnCounter = obsCount;
             obstacle zapper(Level);
@@ -347,6 +436,10 @@ int main(int argc, char ** argv)
             model = glm::mat4(1.0f);
 
             obsQueue[i].obsPos.x -= obsSpeed * deltaTime;
+            if(obsQueue[i].obsOsc)
+            {
+                obsQueue[i].obsPos.y = glm::sin(glm::radians(obsQueue[i].obsOscAngle++)) * obsOscPos;
+            }
 
             model = glm::translate(model, obsQueue[i].obsPos);
             obsQueue[i].obsRotate = obsQueue[i].obsRotate + obsQueue[i].obsAngSpeed;
@@ -361,18 +454,18 @@ int main(int argc, char ** argv)
                 over = true;
             }
 
-            myshader.setMat4("model", model);
+            obsshader.setMat4("model", model);
             if(Level == 1)
             {
-                myshader.setVec4("ourColor", 1.0f, 1.0f, 0.0f, 1.0f);
+                obsshader.setVec4("ourColor", 1.0f, 1.0f, 0.0f, 1.0f);
             }
             if(Level == 2)
             {
-                myshader.setVec4("ourColor", 0.0f, 1.0f, 1.0f, 1.0f);
+                obsshader.setVec4("ourColor", 0.0f, 1.0f, 1.0f, 1.0f);
             }
             if(Level == 3)
             {
-                myshader.setVec4("ourColor", 0.5f, 0.0f, 1.0f, 1.0f);
+                obsshader.setVec4("ourColor", 0.5f, 0.0f, 1.0f, 1.0f);
             }
 
             obstacles.drawObject();
@@ -380,7 +473,7 @@ int main(int argc, char ** argv)
             glBindVertexArray(0);
         }
 
-        // text
+        // text-----------------------------------------------------------------------------
         textshader.use();
         textshader.setMat4("projection", projection);
 
@@ -392,6 +485,8 @@ int main(int argc, char ** argv)
         distance += obsSpeed * deltaTime / 100;
         std::string dist = "Distance : ";
         dist += std::to_string((int)distance);
+        dist += "m/";
+        dist += std::to_string(ldist);
         dist += "m";
 
         std::string level = "Level : ";

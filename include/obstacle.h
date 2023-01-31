@@ -11,6 +11,8 @@ float obsLength = 150;
 unsigned obsCount = 100;
 unsigned int spawnCounter = 0;
 unsigned int Level = 1;
+unsigned int ldist = 30;
+float obsOscPos = 120;
 float obsSpeed = 200;
 
 class obstacle
@@ -19,20 +21,37 @@ class obstacle
         glm::vec3 obsPos;
         float obsRotate;
         float obsAngSpeed;
+        float obsOscAngle;
+        bool obsOsc;
 
         obstacle(unsigned int Level)
         {
             this->obsPos = glm::vec3(750.0f, 0.0f,  0.0f);
             this->obsRotate = rand() % 180;
             this->obsPos.y = ((float)(rand() % 5) / (float)5 - 0.4) * 300;
-            // this->obsPos.y = -0.6;
+            this->obsOsc = false;
             if(Level == 1)
             {
                 this->obsAngSpeed = 0;
             }
-            else
+            else if(Level == 2)
             {
                 this->obsAngSpeed = rand() % 5;
+            }
+            else
+            {
+                int i = rand() % 2;
+                if(i > 0)
+                {
+                    this->obsAngSpeed = rand() % 5 + 1;
+                }
+                else
+                {
+                    this->obsOsc = true;
+                    this->obsAngSpeed = 0;
+                    this->obsRotate = 90;
+                    this->obsOscAngle = rand() % 90;
+                }
             }
         }
 
