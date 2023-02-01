@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec2 TexCoord;
+in vec2 TexCoords;
 out vec4 FragColor;
 
 uniform sampler2D plat;
@@ -8,5 +8,5 @@ uniform sampler2D plat;
 
 void main()
 {
-   FragColor = texture(plat, TexCoord);
+   FragColor = texture(plat, TexCoords);
 };

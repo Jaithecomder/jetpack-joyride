@@ -41,6 +41,10 @@ float downacc = -15;
 float uplim = 160;
 float downlim = -160;
 float distance = 0;
+int walkIndex = 0;
+int flyIndex = 0;
+int tic = 1;
+int ticv = 1;
 
 // window
 int windowWidth;
@@ -87,6 +91,7 @@ void processInput(GLFWwindow *window)
             playerSpeed = playerSpeed + upacc * deltaTime;
             playerPos += glm::vec3(0.0f, 1.0f, 0.0f) * playerSpeed;
         }
+        walkIndex = 0;
     }
     if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
     {
@@ -164,10 +169,10 @@ int main(int argc, char ** argv)
     textInit();
 
     std::vector<float> playerVert{
-        px, py, 0.0f, 1.0f, 1.0f,
-        -px, py, 0.0f, 0.0f, 1.0f,
-        -px, -py, 0.0f, 0.0f, 0.0f,
-        px, -py, 0.0f, 1.0f, 0.0f
+        px, py, 0.0f, 0.65f, 0.76f,
+        -px, py, 0.0f, 0.35f, 0.76f,
+        -px, -py, 0.0f, 0.35f, 0.23f,
+        px, -py, 0.0f, 0.65f, 0.23f
     };
     std::vector<unsigned int> playerInd{
         0, 1, 2,
@@ -195,13 +200,34 @@ int main(int argc, char ** argv)
         -25.0f, -200.0f, 0.0f, 0.143f, 0.99f,
         -25.0f, -250.0f, 0.0f, 0.143f, 0.86f,
         25.0f, -250.0f, 0.0f, 0.286f, 0.86f,
+
+        25.0f, 200.0f, 0.0f, 0.286f, 0.99f,
+        -25.0f, 200.0f, 0.0f, 0.143f, 0.99f,
+        -25.0f, 250.0f, 0.0f, 0.143f, 0.86f,
+        25.0f, 250.0f, 0.0f, 0.286f, 0.86f,
     };
     std::vector<unsigned int> platformInd{
         0, 1, 2,
         0, 2, 3,
+
+        4, 5, 6,
+        4, 6, 7
     };
 
-    Mesh platforms(platformVert, platformInd);
+    Mesh platform(platformVert, platformInd);
+
+    std::vector<float> tplatformVert{
+        75.0f, 200.0f, 0.0f, 1.0f, 1.0f,
+        -75.0f, 200.0f, 0.0f, 0.0f, 1.0f,
+        -75.0f, 250.0f, 0.0f, 0.0f, 0.0f,
+        75.0f, 250.0f, 0.0f, 1.0f, 0.0f,
+    };
+    std::vector<unsigned int> tplatformInd{
+        0, 1, 2,
+        0, 2, 3,
+    };
+
+    Mesh tplatform(tplatformVert, tplatformInd);
 
     std::vector<float> obstacleVert{
         0.5f * obsLength, 7.5f, 0.0f, 1.0f, 1.0f,
@@ -271,8 +297,8 @@ int main(int argc, char ** argv)
 
     Mesh coinSides(cvert, csind);
 
-    unsigned int bg1, bg2, bg3, plat;
-    int iwidth, iheight, nocc;
+    unsigned int bg1;
+    int iwidth, iheight, nocc, pwidth, pheight;
     unsigned char *data;
 
     glGenTextures(1, &bg1);
@@ -297,6 +323,8 @@ int main(int argc, char ** argv)
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
+
+    unsigned int bg2;
 
     glGenTextures(1, &bg2);
     glBindTexture(GL_TEXTURE_2D, bg2);
@@ -325,6 +353,8 @@ int main(int argc, char ** argv)
     bgshader.setInt("bg1", 0);
     bgshader.setInt("bg2", 1);
 
+    unsigned int bg3;
+
     glGenTextures(1, &bg3);
     glBindTexture(GL_TEXTURE_2D, bg3);
 
@@ -350,6 +380,8 @@ int main(int argc, char ** argv)
 
     frontshader.use();
     frontshader.setInt("bg3", 2);
+
+    unsigned int plat;
 
     glGenTextures(1, &plat);
     glBindTexture(GL_TEXTURE_2D, plat);
@@ -377,6 +409,75 @@ int main(int argc, char ** argv)
     platshader.use();
     platshader.setInt("plat", 3);
 
+    unsigned int wiz;
+
+    glGenTextures(1, &wiz);
+    glBindTexture(GL_TEXTURE_2D, wiz);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_set_flip_vertically_on_load(true);
+    
+    std::string plwalkpaths[20] = {"../resources/player/walk/player0.png",
+                        "../resources/player/walk/player1.png",
+                        "../resources/player/walk/player2.png",
+                        "../resources/player/walk/player3.png",
+                        "../resources/player/walk/player4.png",
+                        "../resources/player/walk/player5.png",
+                        "../resources/player/walk/player6.png",
+                        "../resources/player/walk/player7.png",
+                        "../resources/player/walk/player8.png",
+                        "../resources/player/walk/player9.png",
+                        "../resources/player/walk/player10.png",
+                        "../resources/player/walk/player11.png",
+                        "../resources/player/walk/player12.png",
+                        "../resources/player/walk/player13.png",
+                        "../resources/player/walk/player14.png",
+                        "../resources/player/walk/player15.png",
+                        "../resources/player/walk/player16.png",
+                        "../resources/player/walk/player17.png",
+                        "../resources/player/walk/player18.png",
+                        "../resources/player/walk/player19.png"};
+
+    unsigned char * plwalkdata[20];
+    
+    for(int i = 0; i < 20; i++)
+    {
+        plwalkdata[i] = stbi_load(plwalkpaths[i].c_str(), &pwidth, &pheight, &nocc, 0);
+    }
+    if (plwalkdata[0])
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwidth, pheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plwalkdata[0]);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+
+    playershader.use();
+    playershader.setInt("wiz", 4);
+
+    std::string plflypaths[8] = {"../resources/player/fly/fly0.png",
+                        "../resources/player/fly/fly1.png",
+                        "../resources/player/fly/fly2.png",
+                        "../resources/player/fly/fly3.png",
+                        "../resources/player/fly/fly4.png",
+                        "../resources/player/fly/fly5.png",
+                        "../resources/player/fly/fly6.png",
+                        "../resources/player/fly/fly7.png"};
+
+    unsigned char * plflydata[8];
+    
+    for(int i = 0; i < 8; i++)
+    {
+        plflydata[i] = stbi_load(plflypaths[i].c_str(), &pwidth, &pheight, &nocc, 0);
+    }
+
     while(!glfwWindowShouldClose(window))
     {
         float ratio = (float)windowHeight / windowWidth;
@@ -403,14 +504,6 @@ int main(int argc, char ** argv)
         }
 
         // rendering
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, bg1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, bg2);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, bg3);
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, plat);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -425,6 +518,11 @@ int main(int argc, char ** argv)
         // draw background----------------------------------------------------------------
         bgshader.use();
         bgshader.setMat4("projection", projection);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, bg1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, bg2);
 
         if(behindpos < -800)
         {
@@ -443,8 +541,13 @@ int main(int argc, char ** argv)
 
         glBindVertexArray(0);
 
+        glBindTexture(GL_TEXTURE_2D, 0);
+
         frontshader.use();
         frontshader.setMat4("projection", projection);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, bg3);
 
         if(frontpos < -800)
         {
@@ -463,12 +566,17 @@ int main(int argc, char ** argv)
 
         glBindVertexArray(0);
 
+        glBindTexture(GL_TEXTURE_2D, 0);
+
         // draw platforms-----------------------------------------------------------------
         platshader.use();
         platshader.setMat4("projection", projection);
 
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, plat);
+
         platpos -= platSpeed * deltaTime;
-        if(platpos < -800)
+        if(platpos < -600)
         {
             platpos = 0;
         }
@@ -476,13 +584,15 @@ int main(int argc, char ** argv)
         for(int i = 0; i < 32; i++)
         {
             model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(platpos + 50 * i - 400, 0.0f, 0.0f));
+            model = glm::translate(model, glm::vec3(platpos + 50 * i - 400, 0.0f, -20.0f));
             platshader.setMat4("model", model);
 
-            platforms.drawObject();
+            platform.drawObject();
         }
 
         glBindVertexArray(0);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         // -------------------------------------------------------------------------------
 
@@ -521,6 +631,9 @@ int main(int argc, char ** argv)
         // draw player-------------------------------------------------------------------------------
         playershader.use();
         playershader.setMat4("projection", projection);
+
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, wiz);
         
         model = glm::mat4(1.0f);
 
@@ -536,14 +649,52 @@ int main(int argc, char ** argv)
             playerSpeed = 0;
         }
 
+        if(playerPos.y == downlim && tic <= 0)
+        {
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pwidth, pheight, GL_RGBA, GL_UNSIGNED_BYTE, plwalkdata[walkIndex]);
+            walkIndex++;
+            if(walkIndex > 19)
+            {
+                walkIndex = 0;
+            }
+            tic = ticv;
+        }
+        else if(pressTime > 0 && tic <= 0)
+        {
+            if(flyIndex > 3)
+            {
+                flyIndex = 0;
+            }
+            if(flyIndex < 3)
+            {
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pwidth, pheight, GL_RGBA, GL_UNSIGNED_BYTE, plflydata[flyIndex]);
+                flyIndex++;
+            }
+            tic = ticv;
+        }
+        else if(releaseTime > 0 && tic <= 0)
+        {
+            if(flyIndex < 7)
+            {
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pwidth, pheight, GL_RGBA, GL_UNSIGNED_BYTE, plflydata[flyIndex]);
+                flyIndex++;
+            }
+            tic = ticv;
+        }
+        else
+        {
+            tic--;
+        }
+
         model = glm::translate(model, playerPos);
 
         playershader.setMat4("model", model);
-        playershader.setVec4("ourColor", 1.0f, 0.0f, 0.0f, 1.0f);
 
         player.drawObject();
 
         glBindVertexArray(0);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         // draw coins---------------------------------------------------------------------
         myshader.use();
