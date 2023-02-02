@@ -47,8 +47,8 @@ int tic = 1;
 int ticv = 1;
 
 // window
-int windowWidth;
-int windowHeight;
+int windowWidth = 800;
+int windowHeight = 600;
 
 // background
 float behindspeed = 20;
@@ -63,16 +63,80 @@ float platpos = 0;
 // game
 bool over = false;
 bool win = false;
+float levelPos = 0;
+float levelspawnPos = 500;
+float levelSpeed = 200;
 
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+unsigned int splitFBO;
+unsigned int colorBuffers[2];
+unsigned int blurFBO[2];
+unsigned int blurBuffer[2];
+
+void bufferInit()
+{
+    float ratio = (float)windowHeight / windowWidth;
+
+    int iWidth = windowWidth;
+    int iHeight = windowHeight;
+
+    glGenFramebuffers(1, &splitFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, splitFBO);
+    
+    glGenTextures(2, colorBuffers);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, iWidth, iHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
+    }
+
+    unsigned int rboDepth;
+    glGenRenderbuffers(1, &rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, iWidth, iHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Framebuffer not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glGenFramebuffers(2, blurFBO);
+    glGenTextures(2, blurBuffer);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, blurFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, blurBuffer[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, iWidth, iHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blurBuffer[i], 0);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "Framebuffer not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
     windowWidth = width;
     windowHeight = height;
+    glDeleteFramebuffers(1, &splitFBO);
+    glDeleteFramebuffers(2, blurFBO);
+    glDeleteTextures(2, colorBuffers);
+    glDeleteTextures(2, blurBuffer);
+    bufferInit();
 }
 
 void processInput(GLFWwindow *window)
@@ -106,6 +170,39 @@ void processInput(GLFWwindow *window)
 
 }
 
+void blurrer(Shader blurshader, Shader bloomshader, Mesh blurQuad)
+{
+    bool horizontal = true, first_iteration = true;
+    int amount = 10;
+    blurshader.use();
+    for (unsigned int i = 0; i < amount; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, blurFBO[horizontal]);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
+        blurshader.setInt("horizontal", horizontal);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : blurBuffer[!horizontal]);
+        blurQuad.drawObject();
+        horizontal = !horizontal;
+        if (first_iteration)
+        {
+            first_iteration = false;
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    bloomshader.use();
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, blurBuffer[!horizontal]);
+    bloomshader.setFloat("exposure", 1.0f);
+    
+    blurQuad.drawObject();
+}
+
 int main(int argc, char ** argv)
 {
     glfwInit();
@@ -137,6 +234,8 @@ int main(int argc, char ** argv)
     Shader bgshader("../src/vertex.shader", "../src/bgfrag.shader");
     Shader frontshader("../src/vertex.shader", "../src/frontfrag.shader");
     Shader platshader("../src/vertex.shader", "../src/platfrag.shader");
+    Shader blurshader("../src/fboex.shader", "../src/blurfrag.shader");
+    Shader bloomshader("../src/fboex.shader", "../src/bloomfrag.shader");
 
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
@@ -168,11 +267,26 @@ int main(int argc, char ** argv)
 
     textInit();
 
+    // meshes---------------------------------------------------------------------------------------------
+    
+    std::vector<float> blurVert{
+        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 0.0f, 1.0f, 0.0f
+    };
+    std::vector<unsigned int> blurInd{
+        0, 1, 2,
+        0, 2, 3
+    };
+
+    Mesh blurQuad(blurVert, blurInd);
+    
     std::vector<float> playerVert{
         px, py, 0.0f, 0.65f, 0.76f,
-        -px, py, 0.0f, 0.35f, 0.76f,
-        -px, -py, 0.0f, 0.35f, 0.23f,
-        px, -py, 0.0f, 0.65f, 0.23f
+        -px, py, 0.0f, 0.34f, 0.76f,
+        -px, -py, 0.0f, 0.34f, 0.22f,
+        px, -py, 0.0f, 0.65f, 0.22f
     };
     std::vector<unsigned int> playerInd{
         0, 1, 2,
@@ -297,6 +411,8 @@ int main(int argc, char ** argv)
 
     Mesh coinSides(cvert, csind);
 
+    //textures-------------------------------------------------------------------------
+
     unsigned int bg1;
     int iwidth, iheight, nocc, pwidth, pheight;
     unsigned char *data;
@@ -315,7 +431,7 @@ int main(int argc, char ** argv)
     data = stbi_load("../resources/background_layer_1.png", &iwidth, &iheight, &nocc, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, iwidth, iheight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, iwidth, iheight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -340,7 +456,7 @@ int main(int argc, char ** argv)
     data = stbi_load("../resources/background_layer_2.png", &iwidth, &iheight, &nocc, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -369,7 +485,7 @@ int main(int argc, char ** argv)
     data = stbi_load("../resources/background_layer_3.png", &iwidth, &iheight, &nocc, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -397,7 +513,7 @@ int main(int argc, char ** argv)
     data = stbi_load("../resources/MossyTileSet.png", &iwidth, &iheight, &nocc, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, iwidth, iheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -451,7 +567,7 @@ int main(int argc, char ** argv)
     }
     if (plwalkdata[0])
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwidth, pheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plwalkdata[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, pwidth, pheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plwalkdata[0]);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -478,17 +594,27 @@ int main(int argc, char ** argv)
         plflydata[i] = stbi_load(plflypaths[i].c_str(), &pwidth, &pheight, &nocc, 0);
     }
 
+    blurshader.use();
+    blurshader.setInt("image", 5);
+    bloomshader.use();
+    bloomshader.setInt("scene", 6);
+    bloomshader.setInt("bloomBlur", 7);
+
+    // renderloop---------------------------------------------------------------------------------
+
     while(!glfwWindowShouldClose(window))
     {
         float ratio = (float)windowHeight / windowWidth;
         float width = 400.0f;
         float height = width * ratio;
         glm::mat4 projection = glm::ortho(-width, width, -height, height, -100.0f, 100.0f);
+
         processInput(window);
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        std::cout << 1.f / deltaTime << std::endl;
 
         if(distance > ldist)
         {
@@ -504,7 +630,7 @@ int main(int argc, char ** argv)
         }
 
         // rendering
-
+        glBindFramebuffer(GL_FRAMEBUFFER, splitFBO);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -512,8 +638,6 @@ int main(int argc, char ** argv)
         glm::mat4 model = glm::mat4(1.0f);
 
         myshader.use();
-        view = glm::lookAt(camPos, camPos + camFront, camUp);
-        myshader.setMat4("projection", projection);
 
         // draw background----------------------------------------------------------------
         bgshader.use();
@@ -608,21 +732,24 @@ int main(int argc, char ** argv)
             std::string coins = "Coins : ";
             coins += std::to_string(coinswon);
 
-            RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
-            RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
-            RenderText(textshader, coins, width - 150, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
+            RenderText(textshader, dist, -width, 210.0f, 10.0f,  0.15f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), VAO, VBO);
+            RenderText(textshader, level, -75.0f, 210.0f, 10.0f,  0.15f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), VAO, VBO);
+            RenderText(textshader, coins, width - 150, 210.0f, 10.0f,  0.15f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), VAO, VBO);
             if(over)
             {
                 // game over
-                RenderText(textshader, "Game", -300.0f, 50.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
-                RenderText(textshader, "Over", -225.0f, -150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), VAO, VBO);
+                RenderText(textshader, "Game", -300.0f, 50.0f, 10.0f, 1.0f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), VAO, VBO);
+                RenderText(textshader, "Over", -225.0f, -150.0f, 10.0f, 1.0f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), VAO, VBO);
             }
             if(win)
             {
                 // you win
-                RenderText(textshader, "You", -200.0f, 50.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), VAO, VBO);
-                RenderText(textshader, "Win", -175.0f, -150.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f), VAO, VBO);
+                RenderText(textshader, "You", -200.0f, 50.0f, 10.0f, 1.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), VAO, VBO);
+                RenderText(textshader, "Win", -175.0f, -150.0f, 10.0f, 1.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), VAO, VBO);
             }
+
+            blurrer(blurshader, bloomshader, blurQuad);
+
             glfwSwapBuffers(window);
             glfwPollEvents();
             continue;
@@ -661,6 +788,7 @@ int main(int argc, char ** argv)
         }
         else if(pressTime > 0 && tic <= 0)
         {
+            playershader.setInt("glow", 1);
             if(flyIndex > 3)
             {
                 flyIndex = 0;
@@ -674,6 +802,7 @@ int main(int argc, char ** argv)
         }
         else if(releaseTime > 0 && tic <= 0)
         {
+            playershader.setInt("glow", 0);
             if(flyIndex < 7)
             {
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, pwidth, pheight, GL_RGBA, GL_UNSIGNED_BYTE, plflydata[flyIndex]);
@@ -854,9 +983,46 @@ int main(int argc, char ** argv)
         std::string coins = "Coins : ";
         coins += std::to_string(coinswon);
 
-        RenderText(textshader, dist, -width, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
-        RenderText(textshader, level, -75.0f, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
-        RenderText(textshader, coins, width - 150, 210.0f, 0.15f, glm::vec3(1.0f, 1.0f, 1.0f), VAO, VBO);
+        std::string leveln = "Level : ";
+        leveln += std::to_string(Level + 1);
+
+        RenderText(textshader, dist, -width, 210.0f, 10.0f, 0.15f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), VAO, VBO);
+        RenderText(textshader, level, -75.0f, 210.0f, 10.0f, 0.15f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), VAO, VBO);
+        RenderText(textshader, coins, width - 150, 210.0f, 10.0f, 0.15f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), VAO, VBO);
+
+        glm::vec4 tcolor;
+        if(Level == 1)
+        {
+            tcolor = glm::vec4(1.0f, 1.0f, 0.0f, 0.5f);
+        }
+        if(Level == 2 || (Level == 1 && distance > ldist - 10))
+        {
+            tcolor = glm::vec4(0.0f, 1.0f, 1.0f, 0.5f);
+        }
+        if(Level == 3  || (Level == 2 && distance > ldist - 10))
+        {
+            tcolor = glm::vec4(0.5f, 0.0f, 1.0f, 0.5f);
+        }
+        if(distance < 10)
+        {
+            levelPos -= levelSpeed * deltaTime;
+            RenderText(textshader, level, levelPos, -50.0f, -1.0f, 0.75f, tcolor, VAO, VBO);
+        }
+        else if(distance > ldist - 5)
+        {
+            levelPos -= levelSpeed * deltaTime;
+            RenderText(textshader, leveln, levelPos, -50.0f, -1.0f, 0.75f, tcolor, VAO, VBO);
+        }
+        else
+        {
+            levelPos = levelspawnPos;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        //blurring---------------------------------------------------------------------------------------
+        
+        blurrer(blurshader, bloomshader, blurQuad);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

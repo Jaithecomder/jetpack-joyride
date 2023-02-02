@@ -81,10 +81,10 @@ void textInit()
     glBindVertexArray(0);
 }
 
-void RenderText(Shader &shader, std::string text, float x, float y, float scale, glm::vec3 color, unsigned int VAO, unsigned int VBO)
+void RenderText(Shader &shader, std::string text, float x, float y, float z, float scale, glm::vec4 color, unsigned int VAO, unsigned int VBO)
 {
     shader.use();
-    shader.setVec4("ourColor", glm::vec4(color, 1.0f));
+    shader.setVec4("ourColor", color);
     shader.setInt("text", 0);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
@@ -100,13 +100,13 @@ void RenderText(Shader &shader, std::string text, float x, float y, float scale,
         float h = ch.Size.y * scale;
 
         std::vector<float> vertices{
-            xpos, ypos + h, 10.0f, 0.0f, 0.0f,
-            xpos, ypos, 10.0f, 0.0f, 1.0f,
-            xpos + w, ypos, 10.0f, 1.0f, 1.0f,
+            xpos, ypos + h, z, 0.0f, 0.0f,
+            xpos, ypos, z, 0.0f, 1.0f,
+            xpos + w, ypos, z, 1.0f, 1.0f,
 
-            xpos, ypos + h, 10.0f, 0.0f, 0.0f,
-            xpos + w, ypos, 10.0f, 1.0f, 1.0f,
-            xpos + w, ypos + h, 10.0f, 1.0f, 0.0f,
+            xpos, ypos + h, z, 0.0f, 0.0f,
+            xpos + w, ypos, z, 1.0f, 1.0f,
+            xpos + w, ypos + h, z, 1.0f, 0.0f,
         };
 
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);
